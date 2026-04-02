@@ -7,15 +7,13 @@ import io
 
 app = Flask(__name__)
 
-# ===================== 你的信息（已填好你的！） =====================
+
 STUDENT_NAME = "卓金渲"
 STUDENT_ID = "202335020555"
 # 👇 这里换成你自己的百度AI密钥！
 API_KEY = "BPDB9O6Wat3ZQvzCQCl3GZ1T"
 SECRET_KEY = "itDZB6Tk0wEqXVckEw5eIUDVjFIz6qKl"
 
-
-# ==================================================================
 
 # 🔧 优化：增加超时时间 + 重试机制 + 图片压缩
 def get_access_token():
