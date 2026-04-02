@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>百度AI图像识别系统</title>
+    <style>
+        * {
+            font-family: "微软雅黑", sans-serif;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f5f7fa;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        .info {
+            font-size: 22px;
+            color: #2c3e50;
+        }
+        .card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .upload-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        input[type="file"] {
+            font-size: 16px;
+            padding: 8px;
+        }
+        button {
+            padding: 12px 30px;
+            background: #2d8cf0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1e78d1;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            min-height: 180px;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .loading {
+            color: #2d8cf0;
+            font-weight: bold;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .success-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: #e8f5e9;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">百度AI图像识别系统</div>
+        <div class="info">姓名：{{ name }} &nbsp;&nbsp; 学号：{{ sid }}</div>
+    </div>
+
+    <div class="card">
+        <div class="upload-area">
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="uploadImage()">开始识别</button>
+        </div>
+        <div id="result">
+            <h3>识别结果：</h3>
+            <p>请选择图片后点击识别</p>
+        </div>
+    </div>
+
+    <script>
+        function uploadImage() {
+            let file = document.getElementById('imageInput').files[0];
+            let resultArea = document.getElementById("result");
+
+            if (!file) {
+                alert("请先选择图片文件！");
+                return;
+            }
+
+            // 显示加载状态
+            resultArea.innerHTML = '<h3>识别结果：</h3><p class="loading">🔄 正在识别中，请稍候...</p>';
+
+            let formData = new FormData();
+            formData.append("image", file);
+
+            fetch("/recognize", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                resultArea.innerHTML = "<h3>识别结果：</h3>";
+
+                if (data.error) {
+                    resultArea.innerHTML += `<p class="error">❌ 错误：${data.error}</p>`;
+                    return;
+                }
+
+                if (!data.result || data.result.length === 0) {
+                    resultArea.innerHTML += "<p>⚠️ 未识别到有效内容，请更换清晰图片重试</p>";
+                    return;
+                }
+
+                // 遍历显示结果
+                data.result.forEach(item => {
+                    let score = (item.score * 100).toFixed(2);
+                    resultArea.innerHTML += `
+                        <div class="success-item">
+                            ✅ 识别物体：${item.keyword} &nbsp;&nbsp; 置信度：${score}%
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                resultArea.innerHTML = `<h3>识别结果：</h3><p class="error">❌ 请求失败：${err.message}</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
